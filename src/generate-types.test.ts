@@ -485,7 +485,7 @@ describe('generate-types', () => {
       };
 
       export type Foo = {
-        _type: \\"image\\";
+        _type: \\"foo\\";
         asset: SanityAsset;
         /**
          * Title — \`string\`
@@ -529,6 +529,139 @@ describe('generate-types', () => {
           otherDescription: number;
         };
       };
+      "
+    `);
+  });
+
+  it('generates types with correct _type name for images and files', async () => {
+    const customImage = {
+      type: 'image',
+      title: 'Top-level Image Type',
+      name: 'custom_image',
+      fields: [
+        {
+          title: 'Title',
+          name: 'title',
+          type: 'string',
+        },
+      ],
+    };
+
+    const customFile = {
+      type: 'file',
+      title: 'Top-level File Type',
+      name: 'custom_file',
+      fields: [
+        {
+          title: 'Title',
+          name: 'title',
+          type: 'string',
+        },
+      ],
+    };
+
+    const customSlug = {
+      title: 'Top-level Slug',
+      type: 'slug',
+      name: 'custom_slug',
+    };
+
+    const bar = {
+      type: 'document',
+      title: 'Bar',
+      name: 'bar',
+      fields: [
+        {
+          title: 'Nested Image Type',
+          name: 'nestedImage',
+          type: 'custom_image',
+        },
+        {
+          title: 'Nested File Type',
+          name: 'nestedFile',
+          type: 'custom_file',
+        },
+        {
+          title: 'Nested Slug',
+          name: 'nestedSlug',
+          type: 'custom_slug',
+        },
+      ],
+    };
+
+    const result = await generateTypes({
+      types: [customImage, customFile, customSlug, bar],
+    });
+
+    expect(result).toMatchInlineSnapshot(`
+      "import type {
+        SanityReference,
+        SanityAsset,
+        SanityImage,
+        SanityFile,
+        SanitySlug,
+        SanityGeoPoint,
+        SanityBlock,
+        SanityDocument,
+      } from \\"sanity-codegen\\";
+
+      export type {
+        SanityReference,
+        SanityAsset,
+        SanityImage,
+        SanityFile,
+        SanitySlug,
+        SanityGeoPoint,
+        SanityBlock,
+        SanityDocument,
+      };
+
+      /**
+       * Bar
+       *
+       *
+       */
+      export interface Bar extends SanityDocument {
+        _type: \\"bar\\";
+
+        /**
+         * Nested Image Type — \`custom_image\`
+         *
+         *
+         */
+        nestedImage?: CustomImage;
+
+        /**
+         * Nested File Type — \`custom_file\`
+         *
+         *
+         */
+        nestedFile?: CustomFile;
+      }
+
+      export type CustomImage = {
+        _type: \\"custom_image\\";
+        asset: SanityAsset;
+        /**
+         * Title — \`string\`
+         *
+         *
+         */
+        title?: string;
+      };
+
+      export type CustomFile = {
+        _type: \\"custom_file\\";
+        asset: SanityAsset;
+        /**
+         * Title — \`string\`
+         *
+         *
+         */
+        title?: string;
+      };
+
+      export type Documents = Bar;
       "
     `);
   });
